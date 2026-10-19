@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AlbumCanvas</string>
+    <string name="wallpaper_description">Displays the currently playing song artwork as wallpaper with transition animations.</string>
+</resources>
