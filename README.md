@@ -14,6 +14,11 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-blue?logo=jetpackcompose" alt="UI"/>
   <img src="https://img.shields.io/badge/Min%20SDK-26-orange" alt="Min SDK"/>
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License"/>
+  <a href="https://darsheelshokeen.xo.je/album-canvas/?i=1"><img src="https://img.shields.io/badge/Live_Demo-Try_Interactive_Preview-brightgreen?logo=googlechrome&logoColor=white" alt="Live Demo"/></a>
+</p>
+
+<p align="center">
+  🔗 <b><a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">Try the Interactive Web Preview & Demo</a></b>
 </p>
 
 ---
@@ -110,10 +115,20 @@ The APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
 | `POST_NOTIFICATIONS` | Show service status notification |
 | `INTERNET` | Fetch high-res album artwork |
 
-## 🖼️ Preview
+## 🖼️ Preview & Live Demo
+
+Check out how the app looks and functions in real-time!
 
 <p align="center">
-  <img src="previews/app_icon.png" alt="App Icon" width="200"/>
+  <a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">
+    <img src="previews/app_icon.png" alt="App Icon" width="160"/>
+  </a>
+</p>
+
+<p align="center">
+  🌐 <b><a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">Click here to open the Interactive Web Preview</a></b>
+  <br/>
+  <i>Test and see how AlbumCanvas transforms wallpapers with album artwork live in your browser!</i>
 </p>
 
 ## 👨‍💻 Developer
