@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlbumCanvas — Interactive Live Wallpaper Demo</title>
+  <link rel="icon" type="image/svg+xml" href="../previews/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #080a0f;
+      --bg-surface: #10131c;
+      --bg-elevated: #181d2a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.25);
+      
+      --accent-primary: #8e24aa;
+      --accent-vibrant: #1e88e5;
+      --accent-glow: rgba(142, 36, 170, 0.35);
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Dynamic Backdrop */
+    .ambient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      opacity: 0.65;
+      transition: opacity 0.8s ease;
+    }
+
+    .ambient-glow-1, .ambient-glow-2 {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      transition: background 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 2s ease-in-out;
+    }
+
+    .ambient-glow-1 {
+      width: 65vw;
+      height: 65vw;
+      max-width: 800px;
+      max-height: 800px;
+      top: -15%;
+      left: -10%;
+      background: var(--accent-primary);
+      opacity: 0.45;
+    }
+
+    .ambient-glow-2 {
+      width: 55vw;
+      height: 55vw;
+      max-width: 700px;
+      max-height: 700px;
+      bottom: -10%;
+      right: -10%;
+      background: var(--accent-vibrant);
+      opacity: 0.4;
+    }
+
+    /* Header Nav */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(8, 10, 15, 0.7);
+      backdrop-filter: blur(20px);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--text-muted);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-github:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-focus);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    main {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 48px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+
+    /* Left Control & Search Panel */
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .hero-copy h1 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -1.2px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #ffffff 40%, #d0bcff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-copy p {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 600px;
+    }
+
+    /* Custom Song Search Bar */
+    .search-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    .search-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 16px 18px 16px 52px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-vibrant);
+      box-shadow: 0 0 0 4px rgba(30, 136, 229, 0.2);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    /* Live Search Results Dropdown */
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 24px;
+      right: 24px;
+      background: #151824;
+      border: 1px solid var(--border-focus);
+      border-radius: 16px;
+      margin-top: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      display: none;
+    }
+
+    .search-results.active {
+      display: block;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 18px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.15s ease;
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-item:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .result-art {
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .result-details {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .result-title {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-artist {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Presets Quick Grid */
+    .presets-container {
+      margin-top: 16px;
+    }
+
+    .presets-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .presets-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .preset-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .preset-chip:hover, .preset-chip.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .preset-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Studio Customization Sliders */
+    .customizer-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .slider-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .slider-val {
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .range-input {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-vibrant);
+      box-shadow: 0 0 12px var(--accent-vibrant);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .range-input::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Live Color Palette Chips */
+    .palette-box {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .palette-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .palette-swatches {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .palette-swatch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .swatch-color {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    /* Right Phone Mockup Preview */
+    .preview-column {
+      position: sticky;
+      top: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .phone-frame {
+      width: 380px;
+      height: 760px;
+      background: #000;
+      border-radius: 54px;
+      border: 8px solid #282c38;
+      box-shadow: 0 30px 100px rgba(0,0,0,0.9), 0 0 50px var(--accent-glow);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 20px;
+      transition: box-shadow 0.5s ease;
+    }
+
+    .phone-wallpaper-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      filter: blur(24px) brightness(0.75) saturate(1.2);
+      transition: filter 0.2s ease, background-image 0.6s ease;
+      z-index: 1;
+    }
+
+    .phone-dim-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      transition: background 0.2s ease;
+      z-index: 2;
+    }
+
+    .phone-ui-content {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    .phone-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 12px 0;
+    }
+
+    .notch {
+      width: 110px;
+      height: 24px;
+      background: #000;
+      border-radius: 0 0 16px 16px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .phone-clock-box {
+      text-align: center;
+      margin-top: 36px;
+    }
+
+    .phone-time-big {
+      font-family: var(--font-display);
+      font-size: 68px;
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .phone-date-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.85);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* Interactive Music Player Card */
+    .phone-player-card {
+      background: rgba(18, 22, 32, 0.85);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      margin-bottom: 24px;
+    }
+
+    .player-artwork-img {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .player-artwork-img:hover {
+      transform: scale(1.05);
+    }
+
+    .player-meta {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .player-song-title {
+      font-size: 17px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-artist-name {
+      font-size: 14px;
+      color: var(--accent-vibrant);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .play-btn:hover {
+      background: #fff;
+      color: #000;
+      transform: scale(1.08);
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid var(--border-subtle);
+      padding: 28px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      background: rgba(8, 10, 15, 0.8);
+    }
+
+    footer a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Audio-Reactive Lighting -->
+  <div class="ambient-bg">
+    <div id="glow1" class="ambient-glow-1"></div>
+    <div id="glow2" class="ambient-glow-2"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <a href="#" class="brand-group">
+      <img src="../previews/app_icon.png" alt="AlbumCanvas" class="brand-icon" />
+      <div>
+        <div class="brand-title">AlbumCanvas</div>
+      </div>
+      <span class="brand-badge">Live Demo</span>
+    </a>
+
+    <div class="header-links">
+      <a href="https://github.com/DarsheelShokeen/AlbumCanvas" target="_blank" class="btn-github">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        GitHub Repo
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="controls-panel">
+      <div class="hero-copy">
+        <h1>Transform Your Wallpaper With Every Song</h1>
+        <p>Type any song name below to search real album art in real-time, extract its vibrant color palette, and test live wallpaper blur & dim effects!</p>
+      </div>
+
+      <!-- Live Song Search Box -->
+      <div class="search-section">
+        <div class="search-label">
+          <span>Search Any Song or Artist</span>
+          <span style="font-size:11px; color:var(--accent-vibrant);">iTunes Live API</span>
+        </div>
+
+        <div class="search-input-wrapper">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input 
+            type="text" 
+            id="songSearchInput" 
+            class="search-input" 
+            placeholder="Type any song... (e.g. Blinding Lights, Starboy, Bohemian Rhapsody)" 
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Autocomplete Suggestions Dropdown -->
+        <div id="searchResults" class="search-results"></div>
+
+        <!-- Popular Presets -->
+        <div class="presets-container">
+          <div class="presets-label">Popular Presets</div>
+          <div class="presets-row">
+            <button class="preset-chip active" onclick="loadSongDirect('Blinding Lights', 'The Weeknd', 'After Hours', 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a9/3c/69/a93c69f2-2b6d-74d1-8178-5bf0e85ee2e6/20UMGIM08431.rgb.jpg/1000x1000bb.jpg', 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/37/d9/3d/37d93d39-0112-9c92-7f21-72993883a903/mzaf_10523086968748375815.plus.aac.p.m4a')">
+              <span class="preset-dot" style="background:#e53935"></span> The Weeknd
+            </button>
+            <button class="preset-chip" onclick="loadSongDirect('Get Lucky', 'Daft Punk', 'Random Access Memories', 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/2b/9b/7f/2b9b7f58-6902-69f2-9599-4c1fa2669e71/886443926074.jpg/1000x1000bb.jpg', 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/48/e5/26/48e5264b-b83e-d912-e883-938e21aa8be8/mzaf_16147427494541785568.plus.aac.p.m4a')">
+              <span class="preset-dot" style="background:#fbc02d"></span> Daft Punk
+            </button>
+            <button class="preset-chip" onclick="loadSongDirect('HUMBLE.', 'Kendrick Lamar', 'DAMN.', 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/13/bb/75/13bb756c-0fa2-2fa1-f8e1-5e729a6e3868/17UMGIM86278.rgb.jpg/1000x1000bb.jpg', 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/91/3c/31/913c31dc-274e-76bc-e176-4d207c4bc392/mzaf_15783266395340624003.plus.aac.p.m4a')">
+              <span class="preset-dot" style="background:#d32f2f"></span> Kendrick Lamar
+            </button>
+            <button class="preset-chip" onclick="loadSongDirect('Bohemian Rhapsody', 'Queen', 'A Night at the Opera', 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e0/75/88/e07588cf-3c48-2615-ce18-c266a014902b/00602547202758.rgb.jpg/1000x1000bb.jpg', 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/05/b4/9f/05b49ff1-52e6-7b8c-5292-ee27e8d5786f/mzaf_10023419920152438596.plus.aac.p.m4a')">
+              <span class="preset-dot" style="background:#1e88e5"></span> Queen
+            </button>
+            <button class="preset-chip" onclick="loadSongDirect('Levitating', 'Dua Lipa', 'Future Nostalgia', 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1a/05/98/1a059885-b82b-c8ff-706f-1f1917f4b8cf/190295286101.jpg/1000x1000bb.jpg', 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/08/96/9c/08969c3a-d68a-cf8f-c32f-b4b60a3dc728/mzaf_11306387063229606869.plus.aac.p.m4a')">
+              <span class="preset-dot" style="background:#ab47bc"></span> Dua Lipa
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallpaper Engine Customizer -->
+      <div class="customizer-card">
+        <div class="section-heading">
+          <span>Live Wallpaper Engine</span>
+          <span style="font-size:12px; color:var(--text-muted);">Adjust Settings in Real-Time</span>
+        </div>
+
+        <div class="slider-group">
+          <!-- Blur Slider -->
+          <div class="slider-item">
+            <div class="slider-header">
+              <span>Gaussian Blur</span>
+              <span id="blurVal" class="slider-val">24 px</span>
+            </div>
+            <input type="range" id="blurSlider" class="range-input" min="0" max="80" value="24" oninput="updateWallpaperFilters()" />
+          </div>
+
+          <!-- Dim Overlay Slider -->
+          <div class="slider-item">
+            <div class="slider-header">
+              <span>Dimming Overlay</span>
+              <span id="dimVal" class="slider-val">35 %</span>
+            </div>
+            <input type="range" id="dimSlider" class="range-input" min="0" max="85" value="35" oninput="updateWallpaperFilters()" />
+          </div>
+
+          <!-- Saturation Slider -->
+          <div class="slider-item">
+            <div class="slider-header">
+              <span>Artwork Saturation</span>
+              <span id="satVal" class="slider-val">1.2x</span>
+            </div>
+            <input type="range" id="satSlider" class="range-input" min="5" max="25" value="12" oninput="updateWallpaperFilters()" />
+          </div>
+        </div>
+
+        <!-- Real-Time Extracted Color Chips -->
+        <div class="palette-box">
+          <div class="palette-label">Extracted Artwork Palettes</div>
+          <div id="paletteSwatches" class="palette-swatches">
+            <div class="palette-swatch">
+              <div id="swatchPrimary" class="swatch-color" style="background:#8e24aa"></div>
+              <span id="codePrimary">#8E24AA</span>
+            </div>
+            <div class="palette-swatch">
+              <div id="swatchVibrant" class="swatch-color" style="background:#1e88e5"></div>
+              <span id="codeVibrant">#1E88E5</span>
+            </div>
+            <div class="palette-swatch">
+              <div id="swatchAccent" class="swatch-color" style="background:#ec407a"></div>
+              <span id="codeAccent">#EC407A</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Phone Mockup -->
+    <div class="preview-column">
+      <div class="phone-frame">
+        <div class="notch"></div>
+        <div id="phoneWallpaper" class="phone-wallpaper-layer"></div>
+        <div id="phoneDim" class="phone-dim-layer"></div>
+
+        <div class="phone-ui-content">
+          <!-- Status Bar -->
+          <div class="phone-status-bar">
+            <span id="statusClock">10:42</span>
+            <span>📶 🔋 98%</span>
+          </div>
+
+          <!-- Clock Widget -->
+          <div class="phone-clock-box">
+            <div id="bigClock" class="phone-time-big">10:42</div>
+            <div id="todayDate" class="phone-date-sub">Saturday, November 21</div>
+          </div>
+
+          <!-- Music Player Card -->
+          <div class="phone-player-card">
+            <img id="playerArt" class="player-artwork-img" src="" alt="Album Artwork" onclick="toggleAudioPreview()" />
+            <div class="player-meta">
+              <div id="songTitle" class="player-song-title">Blinding Lights</div>
+              <div id="songArtist" class="player-artist-name">The Weeknd • Spotify</div>
+            </div>
+            <button id="playBtn" class="play-btn" onclick="toggleAudioPreview()" title="Play 30s Audio Preview">
+              ▶
+            </button>
+          </div>
+        </div>
+      </div>
+      <audio id="audioPreview" preload="none"></audio>
+      <div style="font-size:12px; color:var(--text-muted); text-align:center;">
+        💡 Click the play button to hear audio preview & test reactive glow!
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>AlbumCanvas — Developed by <a href="https://github.com/DarsheelShokeen" target="_blank">Darsheel Shokeen</a> • Open-Source on <a href="https://github.com/DarsheelShokeen/AlbumCanvas" target="_blank">GitHub</a></p>
+  </footer>
+
+  <!-- Offscreen Canvas for Real-Time Palette Extraction -->
+  <canvas id="colorCanvas" width="50" height="50" style="display:none;"></canvas>
+
+  <script>
+    // State
+    let currentArtworkUrl = '';
+    let currentAudioUrl = '';
+    let searchDebounceTimer = null;
+
+    const searchInput = document.getElementById('songSearchInput');
+    const searchResults = document.getElementById('searchResults');
+    const phoneWallpaper = document.getElementById('phoneWallpaper');
+    const phoneDim = document.getElementById('phoneDim');
+    const playerArt = document.getElementById('playerArt');
+    const songTitle = document.getElementById('songTitle');
+    const songArtist = document.getElementById('songArtist');
+    const audioPreview = document.getElementById('audioPreview');
+    const playBtn = document.getElementById('playBtn');
+
+    // Initialize clock
+    function updateClocks() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${hours}:${mins}`;
+      document.getElementById('statusClock').textContent = timeStr;
+      document.getElementById('bigClock').textContent = timeStr;
+      
+      const options = { weekday: 'long', month: 'long', day: 'numeric' };
+      document.getElementById('todayDate').textContent = now.toLocaleDateString(undefined, options);
+    }
+    updateClocks();
+    setInterval(updateClocks, 10000);
+
+    // Live iTunes Search API
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      clearTimeout(searchDebounceTimer);
+
+      if (!query) {
+        searchResults.classList.remove('active');
+        return;
+      }
+
+      searchDebounceTimer = setTimeout(() => {
+        performSongSearch(query);
+      }, 300);
+    });
+
+    async function performSongSearch(query) {
+      try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=6`);
+        const data = await res.json();
+        renderSearchResults(data.results || []);
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    }
+
+    function renderSearchResults(results) {
+      if (!results.length) {
+        searchResults.innerHTML = '<div style="padding:16px; color:var(--text-muted); text-align:center;">No songs found. Try another title!</div>';
+        searchResults.classList.add('active');
+        return;
+      }
+
+      searchResults.innerHTML = results.map(track => {
+        const highResArt = (track.artworkUrl100 || '').replace('100x100bb', '600x600bb');
+        return `
+          <div class="result-item" onclick="selectTrack(${JSON.stringify(track).replace(/"/g, '&quot;')})">
+            <img class="result-art" src="${track.artworkUrl100}" alt="${track.trackName}" />
+            <div class="result-details">
+              <div class="result-title">${escapeHtml(track.trackName)}</div>
+              <div class="result-artist">${escapeHtml(track.artistName)} • ${escapeHtml(track.collectionName || 'Single')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      searchResults.classList.add('active');
+    }
+
+    function selectTrack(track) {
+      const highResArt = (track.artworkUrl100 || '').replace('100x100bb', '1000x1000bb');
+      loadSongDirect(track.trackName, track.artistName, track.collectionName, highResArt, track.previewUrl);
+      searchResults.classList.remove('active');
+      searchInput.value = `${track.trackName} - ${track.artistName}`;
+    }
+
+    // Direct Song Loader
+    function loadSongDirect(title, artist, album, artworkUrl, previewAudio) {
+      currentArtworkUrl = artworkUrl;
+      currentAudioUrl = previewAudio || '';
+
+      songTitle.textContent = title;
+      songArtist.textContent = `${artist} • Spotify`;
+      playerArt.src = artworkUrl;
+      phoneWallpaper.style.backgroundImage = `url('${artworkUrl}')`;
+
+      // Reset audio
+      audioPreview.pause();
+      if (currentAudioUrl) {
+        audioPreview.src = currentAudioUrl;
+      }
+      playBtn.textContent = '▶';
+
+      // Extract colors from loaded artwork
+      extractColorsFromArtwork(artworkUrl);
+    }
+
+    // Canvas-Based Real-Time Color Extractor
+    function extractColorsFromArtwork(url) {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = url;
+
+      img.onload = () => {
+        try {
+          const canvas = document.getElementById('colorCanvas');
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 50, 50);
+
+          const imgData = ctx.getImageData(0, 0, 50, 50).data;
+          let r = 0, g = 0, b = 0, count = 0;
+          let maxSat = -1, vibrantR = 30, vibrantG = 136, vibrantB = 229;
+
+          for (let i = 0; i < imgData.length; i += 16) {
+            const cr = imgData[i];
+            const cg = imgData[i + 1];
+            const cb = imgData[i + 2];
+            
+            // Skip pure blacks & pure whites
+            if ((cr + cg + cb) > 40 && (cr + cg + cb) < 700) {
+              r += cr;
+              g += cg;
+              b += cb;
+              count++;
+
+              // Approximate saturation
+              const max = Math.max(cr, cg, cb);
+              const min = Math.min(cr, cg, cb);
+              const sat = max === 0 ? 0 : (max - min) / max;
+              if (sat > maxSat) {
+                maxSat = sat;
+                vibrantR = cr;
+                vibrantG = cg;
+                vibrantB = cb;
+              }
+            }
+          }
+
+          if (count > 0) {
+            r = Math.round(r / count);
+            g = Math.round(g / count);
+            b = Math.round(b / count);
+          } else {
+            r = 142; g = 36; b = 170;
+          }
+
+          const primaryHex = rgbToHex(r, g, b);
+          const vibrantHex = rgbToHex(vibrantR, vibrantG, vibrantB);
+          const accentHex = rgbToHex(Math.min(255, r + 50), Math.min(255, g + 30), Math.min(255, b + 60));
+
+          // Update UI Color Swatches
+          document.getElementById('swatchPrimary').style.background = primaryHex;
+          document.getElementById('codePrimary').textContent = primaryHex;
+          document.getElementById('swatchVibrant').style.background = vibrantHex;
+          document.getElementById('codeVibrant').textContent = vibrantHex;
+          document.getElementById('swatchAccent').style.background = accentHex;
+          document.getElementById('codeAccent').textContent = accentHex;
+
+          // Apply to Ambient Glow
+          document.getElementById('glow1').style.background = primaryHex;
+          document.getElementById('glow2').style.background = vibrantHex;
+          songArtist.style.color = vibrantHex;
+          document.documentElement.style.setProperty('--accent-glow', `${vibrantHex}55`);
+        } catch (e) {
+          console.warn('Canvas color extraction note:', e);
+        }
+      };
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    }
+
+    // Filter controls
+    function updateWallpaperFilters() {
+      const blur = document.getElementById('blurSlider').value;
+      const dim = document.getElementById('dimSlider').value;
+      const sat = (document.getElementById('satSlider').value / 10).toFixed(1);
+
+      document.getElementById('blurVal').textContent = `${blur} px`;
+      document.getElementById('dimVal').textContent = `${dim} %`;
+      document.getElementById('satVal').textContent = `${sat}x`;
+
+      phoneWallpaper.style.filter = `blur(${blur}px) brightness(${1 - (dim * 0.005)}) saturate(${sat})`;
+      phoneDim.style.background = `rgba(0, 0, 0, ${dim / 100})`;
+    }
+
+    // Toggle 30s Audio Preview
+    function toggleAudioPreview() {
+      if (!audioPreview.src) return;
+
+      if (audioPreview.paused) {
+        audioPreview.play();
+        playBtn.textContent = '⏸';
+        document.querySelector('.phone-frame').style.boxShadow = '0 30px 100px rgba(0,0,0,0.9), 0 0 80px var(--accent-vibrant)';
+      } else {
+        audioPreview.pause();
+        playBtn.textContent = '▶';
+        document.querySelector('.phone-frame').style.boxShadow = '0 30px 100px rgba(0,0,0,0.9), 0 0 50px var(--accent-glow)';
+      }
+    }
+
+    audioPreview.onended = () => {
+      playBtn.textContent = '▶';
+      document.querySelector('.phone-frame').style.boxShadow = '0 30px 100px rgba(0,0,0,0.9), 0 0 50px var(--accent-glow)';
+    };
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
+    }
+
+    // Close search dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-section')) {
+        searchResults.classList.remove('active');
+      }
+    });
+
+    // Initial Load with The Weeknd
+    loadSongDirect(
+      'Blinding Lights',
+      'The Weeknd',
+      'After Hours',
+      'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a9/3c/69/a93c69f2-2b6d-74d1-8178-5bf0e85ee2e6/20UMGIM08431.rgb.jpg/1000x1000bb.jpg',
+      'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/37/d9/3d/37d93d39-0112-9c92-7f21-72993883a903/mzaf_10523086968748375815.plus.aac.p.m4a'
+    );
+  </script>
+</body>
+</html>

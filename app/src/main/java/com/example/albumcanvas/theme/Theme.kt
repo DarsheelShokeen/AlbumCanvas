@@ -15,15 +15,24 @@ import android.graphics.Color as AndroidColor
 import com.example.albumcanvas.utils.ImageProcessor
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF66BB6A), // Muted green primary
-    secondary = Color(0xFF81C784),
-    tertiary = Color(0xFF2E7D32)
+    primary = Color(0xFFBA68C8), // Radiant Violet
+    secondary = Color(0xFF29B6F6), // Electric Cyan Blue
+    tertiary = Color(0xFFAB47BC),
+    background = Color(0xFF080A0F), // True OLED black
+    surface = Color(0xFF10131C), // Deep glass surface
+    surfaceVariant = Color(0xFF181D2A),
+    onBackground = Color(0xFFF8FAFC),
+    onSurface = Color(0xFFF8FAFC),
+    onSurfaceVariant = Color(0xFF94A3B8)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF2E7D32),
-    secondary = Color(0xFF4CAF50),
-    tertiary = Color(0xFF1B5E20)
+    primary = Color(0xFF8E24AA),
+    secondary = Color(0xFF1E88E5),
+    tertiary = Color(0xFF6A1B9A),
+    background = Color(0xFFF8FAFC),
+    surface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFFE2E8F0)
 )
 
 private fun createArtworkScheme(

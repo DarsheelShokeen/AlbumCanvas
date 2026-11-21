@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#140c24"/>
+      <stop offset="50%" stop-color="#0b0d13"/>
+      <stop offset="100%" stop-color="#08101e"/>
+    </linearGradient>
+    
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ba68c8"/>
+      <stop offset="50%" stop-color="#8e24aa"/>
+      <stop offset="100%" stop-color="#1e88e5"/>
+    </linearGradient>
+
+    <linearGradient id="brushGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#e1bee7"/>
+      <stop offset="100%" stop-color="#90caf9"/>
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas Tile -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect width="512" height="512" rx="112" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Ambient Glow -->
+  <circle cx="230" cy="250" r="140" fill="url(#primaryGrad)" opacity="0.3" filter="url(#glow)"/>
+
+  <!-- Vinyl Record Body -->
+  <g transform="translate(230, 256)">
+    <!-- Outer Vinyl Rim -->
+    <circle r="148" fill="#15171e" stroke="url(#primaryGrad)" stroke-width="4"/>
+
+    <!-- Concentric Grooves -->
+    <circle r="132" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+    <circle r="118" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+    <circle r="104" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+    <circle r="90" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5"/>
+
+    <!-- Center Label -->
+    <circle r="56" fill="url(#primaryGrad)"/>
+    <!-- Center Hole -->
+    <circle r="18" fill="#0b0d13" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+    <circle r="6" fill="#ffffff" opacity="0.9"/>
+  </g>
+
+  <!-- Flowing Paintbrush & Waveform Arc -->
+  <path d="M 140 370 
+           C 110 300, 110 190, 190 130 
+           C 270 70, 380 90, 410 160 
+           C 425 195, 415 240, 380 270 
+           C 340 305, 290 310, 245 285 
+           C 275 270, 300 240, 310 200 
+           C 325 140, 250 120, 205 160 
+           C 160 200, 160 280, 200 340
+           C 175 355, 155 365, 140 370 Z" 
+        fill="url(#brushGrad)" 
+        filter="drop-shadow(0px 8px 16px rgba(0,0,0,0.5))"/>
+
+  <!-- Brush Tip / Accent Drop -->
+  <path d="M 370 145 C 385 125, 415 110, 430 115 C 435 130, 420 160, 400 170 C 385 165, 375 155, 370 145 Z" 
+        fill="#ffffff" opacity="0.95"/>
+</svg>

@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="previews/app_icon.png" alt="AlbumCanvas Icon" width="150"/>
+  <img src="previews/logo.svg" alt="AlbumCanvas Brand Banner" width="550"/>
 </p>
-
-<h1 align="center">🎨 AlbumCanvas</h1>
 
 <p align="center">
   <b>Automatically set your phone's wallpaper to the album art of whatever you're listening to.</b>
@@ -18,7 +16,7 @@
 </p>
 
 <p align="center">
-  🔗 <b><a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">Try the Interactive Web Preview & Demo</a></b>
+  🌐 <b><a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">Try the Interactive Web Preview & Search Any Song Live</a></b>
 </p>
 
 ---
@@ -115,21 +113,29 @@ The APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
 | `POST_NOTIFICATIONS` | Show service status notification |
 | `INTERNET` | Fetch high-res album artwork |
 
-## 🖼️ Preview & Live Demo
+## 🖼️ Preview & Interactive Demo
 
-Check out how the app looks and functions in real-time!
+Experience how AlbumCanvas adapts dynamically in real-time!
 
 <p align="center">
   <a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">
-    <img src="previews/app_icon.png" alt="App Icon" width="160"/>
+    <img src="previews/icon.svg" alt="AlbumCanvas App Icon" width="160"/>
   </a>
 </p>
 
 <p align="center">
   🌐 <b><a href="https://darsheelshokeen.xo.je/album-canvas/?i=1">Click here to open the Interactive Web Preview</a></b>
   <br/>
-  <i>Test and see how AlbumCanvas transforms wallpapers with album artwork live in your browser!</i>
+  <i>Search ANY song of your choice to test real album art and wallpaper blur/dimming in real-time!</i>
 </p>
+
+### 🎬 Launch Video
+Watch the 1080p release video: [previews/brag.mp4](previews/brag.mp4)
+
+### 📐 Brand & Vector Assets
+- 🎨 **Brand Banner**: [`previews/logo.svg`](previews/logo.svg)
+- 📱 **App Icon**: [`previews/icon.svg`](previews/icon.svg)
+- 🔲 **Monochrome Mark**: [`previews/logo-monochrome.svg`](previews/logo-monochrome.svg)
 
 ## 👨‍💻 Developer
 
